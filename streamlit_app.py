@@ -188,9 +188,9 @@ def live_dashboard() -> None:
     side = st.segmented_control("Signal", ["All", "HH", "LL"], default="All", key="signal_filter")
     query = st.text_input("Filter ticker", placeholder="Ticker symbol", key="ticker_filter")
     shown = results.copy()
-    if side in {"HH", "LL"}:
+    if side in {"HH", "LL"} and "Signal" in shown.columns:
         shown = shown[shown["Signal"] == side]
-    if query:
+    if query and "Ticker" in shown.columns:
         shown = shown[shown["Ticker"].str.contains(query.strip(), case=False, na=False)]
 
     with st.container(horizontal=True):
@@ -201,12 +201,16 @@ def live_dashboard() -> None:
 
     st.subheader("Scanner results")
     st.caption("Select any column heading to sort. Rows without a qualifying option contract are excluded.")
-    st.dataframe(
-        shown.drop(columns=["Rocket"], errors="ignore"),
-        hide_index=True,
-        height=620,
-        key="streamlit_scanner_results",
-        column_config={
+    display = shown.drop(columns=["Rocket"], errors="ignore")
+    if display.empty and len(display.columns) == 0:
+        st.info("No qualifying HH/LL contracts are present in the published snapshot.")
+    else:
+        st.dataframe(
+            display,
+            hide_index=True,
+            height=620,
+            key="streamlit_scanner_results",
+            column_config={
             "Ticker": st.column_config.TextColumn(pinned=True),
             "NetGainPct": st.column_config.NumberColumn("Net gain", format="%.2f%%"),
             "VolFactor": st.column_config.NumberColumn("Vol factor", format="%.2f×"),
@@ -220,8 +224,8 @@ def live_dashboard() -> None:
             "VolOIRatio": st.column_config.NumberColumn("Vol/OI", format="%.2f×"),
             "OptionLast": st.column_config.NumberColumn("Option last", format="$%.2f"),
             "PremiumEstimate": st.column_config.NumberColumn("Premium estimate", format="$%.2f"),
-        },
-    )
+            },
+        )
     st.download_button(
         ":material/download: Download Excel CSV",
         data=csv_bytes(shown),
