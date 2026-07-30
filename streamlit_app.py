@@ -125,7 +125,8 @@ def public_dashboard() -> None:
             st.subheader("Copy option contract")
             choices = shown[["Ticker", "MaxVolOp"]].drop_duplicates().sort_values("Ticker")
             choice = st.selectbox("Select ticker", choices["Ticker"].tolist(), key="copy_contract_ticker")
-            contract = choices.loc[choices["Ticker"] == choice, "MaxVolOp"].iloc[0]
+            contracts = choices.loc[choices["Ticker"] == choice, "MaxVolOp"].tolist()
+            contract = st.selectbox("Select contract", contracts, key="copy_contract_symbol")
             st.code(str(contract), language=None)
 
     with st.container(horizontal=True):
