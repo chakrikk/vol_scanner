@@ -39,6 +39,26 @@ def data_timestamp() -> datetime | None:
     return datetime.fromtimestamp(max(times), tz=timezone.utc) if times else None
 
 
+def color_grid(frame: pd.DataFrame):
+    def score_color(value):
+        try:
+            value = float(value)
+            return "background-color: #b7e4c7" if value >= 85 else "background-color: #d8f3dc" if value >= 70 else "background-color: #fff3bf"
+        except (TypeError, ValueError):
+            return ""
+    def delta_color(value):
+        try:
+            value = float(value)
+            return "color: #087f5b; font-weight: 700" if value >= 1 else "color: #c92a2a; font-weight: 700" if value <= -1 else ""
+        except (TypeError, ValueError):
+            return ""
+    styler = frame.style
+    if "Score" in frame: styler = styler.map(score_color, subset=["Score"])
+    if "ScoreDelta" in frame: styler = styler.map(delta_color, subset=["ScoreDelta"])
+    if "NetGainDelta" in frame: styler = styler.map(delta_color, subset=["NetGainDelta"])
+    return styler
+
+
 st.title("Volume Scanner HH / LL")
 st.caption("Public read-only market scanner. Schwab credentials remain on the publisher's computer.")
 
@@ -108,9 +128,13 @@ def public_dashboard() -> None:
 
     st.subheader("Scanner results")
     st.caption("Select a column heading to sort. Rows without a qualifying option contract are excluded.")
-    table_view = shown.drop(columns=["Last", "Open", "High", "Low"], errors="ignore")
+    table_view = shown.drop(columns=["Last", "Open", "High", "Low"], errors="ignore").copy()
+    if "Grade" in table_view:
+        table_view["Grade"] = table_view["Grade"].map({"A+": "🔥 A+", "B": "✅ B", "C": "⚠️ C"}).fillna(table_view["Grade"])
+    if "TradeReady" in table_view:
+        table_view["TradeReady"] = table_view["TradeReady"].map({"YES": "✅ YES", "NO": "⛔ NO"}).fillna(table_view["TradeReady"])
     st.dataframe(
-        table_view, hide_index=True, height=620, key="public_scanner_results",
+        color_grid(table_view), hide_index=True, height=620, key="public_scanner_results",
         column_config={
             "Ticker": st.column_config.TextColumn(pinned=True),
             "NetGainPct": st.column_config.NumberColumn("Net gain", format="%.2f%%"),
