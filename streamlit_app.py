@@ -142,7 +142,7 @@ def public_dashboard() -> None:
 
     st.subheader("Scanner results")
     st.caption("Select a column heading to sort. Rows without a qualifying option contract are excluded.")
-    table_view = shown.drop(columns=["Last", "Open", "High", "Low"], errors="ignore").copy()
+    table_view = shown.drop(columns=["Last", "Open", "High", "Low", "AddedAt", "UpdatedAt"], errors="ignore").copy()
     if "Grade" in table_view:
         table_view["Grade"] = table_view["Grade"].map({"A+": "🔥 A+", "B": "✅ B", "C": "⚠️ C"}).fillna(table_view["Grade"])
     if "TradeReady" in table_view:
