@@ -1,1 +1,1 @@
-Signal,Ticker,NetGainPct,NetGainDelta,VolFactor,VolFactorDelta,Last,Open,High,Low,HHCount,MaxVolOp,OI,OptionVolume,VolOIRatio,OptionLast,PremiumEstimate,DaysToExpiry,Score,ScoreDelta,Grade,TradeReady,AddedAt,UpdatedAt
+Ticker,Last,prevClose,Open,High,Low,volume,avgVolume,HHCount,NetGainPct,VolFactor,Signal,MaxVolOp,OI,OptionVolume,VolOIRatio,OptionLast,PremiumEstimate,DaysToExpiry,Score,Grade,TradeReady,NetGainDelta,ScoreDelta,VolFactorDelta
