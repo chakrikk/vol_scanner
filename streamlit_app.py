@@ -120,6 +120,13 @@ def public_dashboard() -> None:
         shown = shown[shown["Ticker"].astype(str).str.contains(ticker_query.strip(), case=False, na=False)]
     if "VolFactor" in shown:
         shown = shown[pd.to_numeric(shown["VolFactor"], errors="coerce").fillna(0) >= minimum_factor]
+    if "MaxVolOp" in shown and not shown.empty:
+        with st.sidebar:
+            st.subheader("Copy option contract")
+            choices = shown[["Ticker", "MaxVolOp"]].drop_duplicates().sort_values("Ticker")
+            choice = st.selectbox("Select ticker", choices["Ticker"].tolist(), key="copy_contract_ticker")
+            contract = choices.loc[choices["Ticker"] == choice, "MaxVolOp"].iloc[0]
+            st.code(str(contract), language=None)
 
     with st.container(horizontal=True):
         st.metric("Qualifying", len(shown), border=True)
