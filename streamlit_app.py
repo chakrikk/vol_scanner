@@ -147,10 +147,13 @@ def public_dashboard() -> None:
         table_view["Grade"] = table_view["Grade"].map({"A+": "🔥 A+", "B": "✅ B", "C": "⚠️ C"}).fillna(table_view["Grade"])
     if "TradeReady" in table_view:
         table_view["TradeReady"] = table_view["TradeReady"].map({"YES": "✅ YES", "NO": "⛔ NO"}).fillna(table_view["TradeReady"])
+    if "MaxVolOp" in table_view:
+        table_view["MaxVolOp"] = table_view["MaxVolOp"].map(lambda symbol: f"https://trade.thinkorswim.com/trade?symbol={symbol}")
     st.dataframe(
         color_grid(table_view), hide_index=True, height="auto", key="public_scanner_results",
         column_config={
             "Ticker": st.column_config.TextColumn(pinned=True),
+            "MaxVolOp": st.column_config.LinkColumn("MaxVolOp", display_text=r"https://trade\.thinkorswim\.com/trade\?symbol=(.*)"),
             "NetGainPct": st.column_config.NumberColumn("Net gain", format="%.2f%%"),
             "NetGainDelta": st.column_config.NumberColumn("Change since scan", format="%.2f%%"),
             "VolFactor": st.column_config.NumberColumn("Vol factor", format="%.2f×"),
