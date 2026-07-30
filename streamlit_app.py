@@ -58,6 +58,9 @@ def color_grid(frame: pd.DataFrame):
     if "NetGainDelta" in frame: styler = styler.map(delta_color, subset=["NetGainDelta"])
     if "NetGainPct" in frame: styler = styler.map(delta_color, subset=["NetGainPct"])
     if "VolFactorDelta" in frame: styler = styler.map(delta_color, subset=["VolFactorDelta"])
+    bold_columns = [column for column in ["Ticker", "MaxVolOp", "Score"] if column in frame.columns]
+    if bold_columns:
+        styler = styler.set_properties(subset=bold_columns, **{"font-weight": "700"})
     return styler
 
 
