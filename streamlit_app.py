@@ -108,8 +108,9 @@ def public_dashboard() -> None:
 
     st.subheader("Scanner results")
     st.caption("Select a column heading to sort. Rows without a qualifying option contract are excluded.")
+    table_view = shown.drop(columns=["Last", "Open", "High", "Low"], errors="ignore")
     st.dataframe(
-        shown, hide_index=True, height=620, key="public_scanner_results",
+        table_view, hide_index=True, height=620, key="public_scanner_results",
         column_config={
             "Ticker": st.column_config.TextColumn(pinned=True),
             "NetGainPct": st.column_config.NumberColumn("Net gain", format="%.2f%%"),
