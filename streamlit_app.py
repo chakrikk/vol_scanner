@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
 SCANNER_CSV = DATA_DIR / "scanner-results.csv"
 WATCHLIST_CSV = DATA_DIR / "watchlist.csv"
+MARKET_CSV = DATA_DIR / "market.csv"
 
 st.set_page_config(page_title="Volume Scanner HH / LL", page_icon=":material/candlestick_chart:", layout="wide")
 
@@ -27,7 +28,8 @@ def read_public_csv(path: str, modified_ns: int) -> pd.DataFrame:
 def load_public_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     scanner_mtime = SCANNER_CSV.stat().st_mtime_ns if SCANNER_CSV.exists() else 0
     watchlist_mtime = WATCHLIST_CSV.stat().st_mtime_ns if WATCHLIST_CSV.exists() else 0
-    return read_public_csv(str(SCANNER_CSV), scanner_mtime), read_public_csv(str(WATCHLIST_CSV), watchlist_mtime)
+    market_mtime = MARKET_CSV.stat().st_mtime_ns if MARKET_CSV.exists() else 0
+    return read_public_csv(str(SCANNER_CSV), scanner_mtime), read_public_csv(str(WATCHLIST_CSV), watchlist_mtime), read_public_csv(str(MARKET_CSV), market_mtime)
 
 
 def csv_bytes(frame: pd.DataFrame) -> bytes:
@@ -100,7 +102,12 @@ with st.sidebar:
 
 @st.fragment(run_every="30s")
 def public_dashboard() -> None:
-    scanner, watchlist = load_public_data()
+    scanner, watchlist, market = load_public_data()
+    if not market.empty:
+        st.subheader("Market overview")
+        cols = st.columns(len(market))
+        for col, row in zip(cols, market.itertuples()):
+            col.metric(row.Name, f"{row.Last:,.2f}", f"{row._3:+.2f}%")
     with st.sidebar:
         st.subheader(f"Watchlist · {len(watchlist)}")
         st.dataframe(
