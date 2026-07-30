@@ -122,7 +122,7 @@ def public_dashboard() -> None:
     if signal in {"HH", "LL"}:
         shown = shown[shown["Signal"] == signal]
     if ticker_query:
-        shown = shown[shown["Ticker"].astype(str).str.contains(ticker_query.strip(), case=False, na=False)]
+        shown = shown[shown["Ticker"].astype(str).str.fullmatch(ticker_query.strip(), case=False, na=False)]
     if "VolFactor" in shown:
         shown = shown[pd.to_numeric(shown["VolFactor"], errors="coerce").fillna(0) >= minimum_factor]
     if "MaxVolOp" in shown and not shown.empty:
