@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 
-SCANNER_COLUMNS = ["Signal", "Ticker", "NetGainPct", "VolFactor", "Last", "Open", "High", "Low", "HHCount", "MaxVolOp", "OI", "OptionVolume", "VolOIRatio", "OptionLast", "PremiumEstimate", "DaysToExpiry", "Score", "Grade", "TradeReady", "AddedAt", "UpdatedAt"]
+SCANNER_COLUMNS = ["Signal", "Ticker", "NetGainPct", "NetGainDelta", "VolFactor", "VolFactorDelta", "Last", "Open", "High", "Low", "HHCount", "MaxVolOp", "OI", "OptionVolume", "VolOIRatio", "OptionLast", "PremiumEstimate", "DaysToExpiry", "Score", "ScoreDelta", "Grade", "TradeReady", "AddedAt", "UpdatedAt"]
 
 
 def read_csv(path: Path) -> pd.DataFrame:
@@ -17,6 +17,8 @@ def read_csv(path: Path) -> pd.DataFrame:
 
 
 def build_snapshot(source: Path, output: Path) -> tuple[int, int]:
+    output.mkdir(parents=True, exist_ok=True)
+    previous = read_csv(output / "scanner-results.csv")
     stocks = read_csv(source / "stock-template.csv")
     options = read_csv(source / "options-template.csv")
     if stocks.empty:
@@ -62,12 +64,14 @@ def build_snapshot(source: Path, output: Path) -> tuple[int, int]:
             scanner["Score"] = (scanner["MovementScore"] + scanner["TrendScore"] + scanner["OptionsScore"]).clip(upper=100).round(1)
             scanner["Grade"] = pd.cut(scanner["Score"], bins=[-float("inf"), 50, 70, 85, float("inf")], labels=["Discard", "C", "B", "A+"]).astype(str)
             scanner["TradeReady"] = ((scanner["Score"] >= 70) & (scanner["DaysToExpiry"] >= 7) & (scanner["OptionVolume"] >= 500) & (scanner["OI"] >= 500)).map({True: "YES", False: "NO"})
+            old = previous.drop_duplicates("Ticker").set_index("Ticker") if not previous.empty and "Ticker" in previous.columns else pd.DataFrame()
+            scanner["NetGainDelta"] = scanner.apply(lambda r: r["NetGainPct"] - float(old.loc[r["Ticker"], "NetGainPct"]) if not old.empty and r["Ticker"] in old.index and "NetGainPct" in old.columns else 0.0, axis=1).round(2)
+            scanner["ScoreDelta"] = scanner.apply(lambda r: r["Score"] - float(old.loc[r["Ticker"], "Score"]) if not old.empty and r["Ticker"] in old.index and "Score" in old.columns else 0.0, axis=1).round(1)
+            scanner["VolFactorDelta"] = scanner.apply(lambda r: r["VolFactor"] - float(old.loc[r["Ticker"], "VolFactor"]) if not old.empty and r["Ticker"] in old.index and "VolFactor" in old.columns else 0.0, axis=1).round(2)
             scanner = scanner.drop(columns=["MovementScore", "TrendScore", "OptionsScore"])
             scanner = scanner[scanner["Score"] >= 50]
             scanner = scanner[scanner["Signal"] != ""].sort_values("VolFactor", ascending=False)
 
-    output.mkdir(parents=True, exist_ok=True)
-    previous = read_csv(output / "scanner-results.csv")
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     if not scanner.empty:
         prior_added = {}
@@ -79,7 +83,16 @@ def build_snapshot(source: Path, output: Path) -> tuple[int, int]:
         scanner["AddedAt"] = [prior_added.get(str(row.Ticker), now) for row in scanner.itertuples()]
         scanner["UpdatedAt"] = now
         scanner = scanner[SCANNER_COLUMNS]
+    market_map = {"$SPX": "SPX", "$SPX.X": "SPX", "/ES": "ES", "ES": "ES", "/NQ": "NASDAQ", "NQ": "NASDAQ", "$NDX": "NASDAQ", "$NDX.X": "NASDAQ", "$VIX": "VIX", "$VIX.X": "VIX", "VIX": "VIX"}
+    market = stocks[stocks["ticker"].astype(str).str.upper().isin(market_map)].copy()
+    if not market.empty:
+        market["Name"] = market["ticker"].astype(str).str.upper().map(market_map)
+        market["% Change"] = ((market["close"] - market["prevClose"]) / market["prevClose"].replace(0, pd.NA) * 100).fillna(0).round(2)
+        market = market.rename(columns={"close": "Last", "open": "Open", "high": "High", "low": "Low"})[["Name", "ticker", "Last", "% Change", "Open", "High", "Low"]].rename(columns={"ticker": "Symbol"})
+    else:
+        market = pd.DataFrame(columns=["Name", "Symbol", "Last", "% Change", "Open", "High", "Low"])
     watchlist.to_csv(output / "watchlist.csv", index=False)
+    market.to_csv(output / "market.csv", index=False)
     scanner.to_csv(output / "scanner-results.csv", index=False)
     return len(watchlist), len(scanner)
 

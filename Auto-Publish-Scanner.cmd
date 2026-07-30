@@ -14,14 +14,15 @@ echo Building credential-free public snapshot...
 if errorlevel 1 exit /b 1
 
 cd /d "%PUBLIC_REPO%"
-git -c safe.directory="%PUBLIC_REPO%" add data\watchlist.csv data\scanner-results.csv
-git -c safe.directory="%PUBLIC_REPO%" diff --quiet --cached -- data\watchlist.csv data\scanner-results.csv
+git config --global --add safe.directory "%PUBLIC_REPO%"
+git add data\watchlist.csv data\scanner-results.csv data\market.csv streamlit_app.py publish_snapshot.py Auto-Publish-Scanner.cmd SCANNER-GUIDE.md requirements.txt .gitignore README.md
+git diff --quiet --cached
 if not errorlevel 1 (
   echo No changes to publish.
   exit /b 0
 )
-git -c safe.directory="%PUBLIC_REPO%" commit -m "Update scanner snapshot"
-git -c safe.directory="%PUBLIC_REPO%" push origin main
+git commit -m "Update scanner snapshot"
+git push origin main
 if errorlevel 1 (
   echo Push failed. Check GitHub authentication and branch name.
   exit /b 1
