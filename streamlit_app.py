@@ -148,7 +148,7 @@ def public_dashboard() -> None:
     if "TradeReady" in table_view:
         table_view["TradeReady"] = table_view["TradeReady"].map({"YES": "✅ YES", "NO": "⛔ NO"}).fillna(table_view["TradeReady"])
     st.dataframe(
-        color_grid(table_view), hide_index=True, height=620, key="public_scanner_results",
+        color_grid(table_view), hide_index=True, height="auto", key="public_scanner_results",
         column_config={
             "Ticker": st.column_config.TextColumn(pinned=True),
             "NetGainPct": st.column_config.NumberColumn("Net gain", format="%.2f%%"),
