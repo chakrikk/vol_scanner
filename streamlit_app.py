@@ -57,6 +57,7 @@ def color_grid(frame: pd.DataFrame):
     if "ScoreDelta" in frame: styler = styler.map(delta_color, subset=["ScoreDelta"])
     if "NetGainDelta" in frame: styler = styler.map(delta_color, subset=["NetGainDelta"])
     if "NetGainPct" in frame: styler = styler.map(delta_color, subset=["NetGainPct"])
+    if "VolFactorDelta" in frame: styler = styler.map(delta_color, subset=["VolFactorDelta"])
     return styler
 
 
@@ -141,6 +142,7 @@ def public_dashboard() -> None:
             "NetGainPct": st.column_config.NumberColumn("Net gain", format="%.2f%%"),
             "NetGainDelta": st.column_config.NumberColumn("Change since scan", format="%.2f%%"),
             "VolFactor": st.column_config.NumberColumn("Vol factor", format="%.2f×"),
+            "VolFactorDelta": st.column_config.NumberColumn("Vol factor change", format="%.2f×"),
             "Last": st.column_config.NumberColumn(format="$%.2f"),
             "Open": st.column_config.NumberColumn(format="$%.2f"),
             "High": st.column_config.NumberColumn(format="$%.2f"),
