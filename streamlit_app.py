@@ -106,8 +106,8 @@ def public_dashboard() -> None:
     if not market.empty:
         st.subheader("Market overview")
         cols = st.columns(len(market))
-        for col, row in zip(cols, market.itertuples()):
-            col.metric(row.Name, f"{row.Last:,.2f}", f"{row._3:+.2f}%")
+        for col, (_, row) in zip(cols, market.iterrows()):
+            col.metric(str(row["Name"]), f"{float(row['Last']):,.2f}", f"{float(row['% Change']):+.2f}%")
     with st.sidebar:
         st.subheader(f"Watchlist · {len(watchlist)}")
         st.dataframe(
