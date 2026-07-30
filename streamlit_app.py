@@ -43,7 +43,7 @@ def color_grid(frame: pd.DataFrame):
     def score_color(value):
         try:
             value = float(value)
-            return "background-color: #b7e4c7" if value >= 85 else "background-color: #d8f3dc" if value >= 70 else "background-color: #fff3bf"
+            return "background-color: #86efac; color: #111827; font-weight: 700" if value >= 85 else "background-color: #bbf7d0; color: #111827; font-weight: 700" if value >= 70 else "background-color: #fef08a; color: #111827; font-weight: 700"
         except (TypeError, ValueError):
             return ""
     def delta_color(value):
