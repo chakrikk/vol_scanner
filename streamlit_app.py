@@ -56,6 +56,7 @@ def color_grid(frame: pd.DataFrame):
     if "Score" in frame: styler = styler.map(score_color, subset=["Score"])
     if "ScoreDelta" in frame: styler = styler.map(delta_color, subset=["ScoreDelta"])
     if "NetGainDelta" in frame: styler = styler.map(delta_color, subset=["NetGainDelta"])
+    if "NetGainPct" in frame: styler = styler.map(delta_color, subset=["NetGainPct"])
     return styler
 
 
@@ -138,6 +139,7 @@ def public_dashboard() -> None:
         column_config={
             "Ticker": st.column_config.TextColumn(pinned=True),
             "NetGainPct": st.column_config.NumberColumn("Net gain", format="%.2f%%"),
+            "NetGainDelta": st.column_config.NumberColumn("Change since scan", format="%.2f%%"),
             "VolFactor": st.column_config.NumberColumn("Vol factor", format="%.2f×"),
             "Last": st.column_config.NumberColumn(format="$%.2f"),
             "Open": st.column_config.NumberColumn(format="$%.2f"),
@@ -151,6 +153,7 @@ def public_dashboard() -> None:
             "PremiumEstimate": st.column_config.NumberColumn("Premium estimate", format="$%.2f"),
             "DaysToExpiry": st.column_config.NumberColumn("Days to expiry", format="%d"),
             "Score": st.column_config.NumberColumn("Score", format="%.1f"),
+            "ScoreDelta": st.column_config.NumberColumn("Score change", format="%.1f"),
             "Grade": st.column_config.TextColumn("Grade"),
             "TradeReady": st.column_config.TextColumn("Trade ready"),
             "AddedAt": st.column_config.DatetimeColumn("Added at"),
